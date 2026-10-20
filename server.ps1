@@ -46,16 +46,18 @@ try {
         $request = $context.Request
         $response = $context.Response
 
-        $path = $request.Url.LocalPath.TrimStart('/')
-        if ([string]::IsNullOrWhiteSpace($path)) {
-            $path = "index.html"
+        $rawPath = $request.Url.LocalPath.TrimStart('/')
+        if ([string]::IsNullOrWhiteSpace($rawPath)) {
+            $rawPath = "index.html"
         }
         
         # Eliminar query strings si las hay
-        if ($path.Contains("?")) {
-            $path = $path.Substring(0, $path.IndexOf("?"))
+        if ($rawPath.Contains("?")) {
+            $rawPath = $rawPath.Substring(0, $rawPath.IndexOf("?"))
         }
 
+        # Decodificar caracteres URL como espacios (%20)
+        $path = [System.Uri]::UnescapeDataString($rawPath)
         $filePath = Join-Path $baseDir $path
 
         if (Test-Path $filePath -PathType Leaf) {
@@ -66,6 +68,9 @@ try {
                 ".css"  { "text/css; charset=utf-8" }
                 ".js"   { "application/javascript; charset=utf-8" }
                 ".json" { "application/json; charset=utf-8" }
+                ".mp3"  { "audio/mpeg" }
+                ".wav"  { "audio/wav" }
+                ".ogg"  { "audio/ogg" }
                 ".png"  { "image/png" }
                 ".jpg"  { "image/jpeg" }
                 ".jpeg" { "image/jpeg" }
