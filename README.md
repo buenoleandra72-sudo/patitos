@@ -69,7 +69,11 @@ Para solucionar esto de forma instantánea:
 * **Sesiones de Alta Intensidad y Enfoque:** El juego inicia automáticamente configurado a **30 segundos**, permitiendo rondas cortas, dinámicas y altamente motivadoras para evitar la fatiga motriz.
 * También configurable a 60s, 90s o Modo Libre para sesiones extendidas.
 
-### 6. 🦆 Tipos de Patos
+### 6. 🎵 Música de Fondo Alegre ("Do - Mi - Sol - Canasta")
+* **Ambientación Lúdica:** Incorpora la canción de fondo ubicada en la carpeta `musica/`, reproduciéndose en bucle para brindar una atmósfera amena, divertida y estimulante.
+* **Atenuación Automática de Volumen (Ducking):** Al decir "¡Izquierda / Derecha, bien hecho!", el juego baja sutilmente el volumen de la música para que la voz se escuche clara y nítida.
+
+### 7. 🦆 Tipos de Patos
 * **Pato Clásico (Amarillo):** Vuelo equilibrado (+100 puntos).
 * **Pato Gigante (Rosa):** Blanco grande para facilitar el alcance (+80 puntos).
 * **Pato Veloz (Verde):** Ágil y rápido (+200 puntos).
