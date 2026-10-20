@@ -292,10 +292,13 @@ class DuckGame {
 
         this.updateHUD();
 
-        // Cuenta atrás auditiva
+        // Cuenta atrás auditiva e inicio de música de fondo
         window.gameSounds.playCountdown(false);
         setTimeout(() => window.gameSounds.playCountdown(false), 300);
-        setTimeout(() => window.gameSounds.playCountdown(true), 600);
+        setTimeout(() => {
+            window.gameSounds.playCountdown(true);
+            window.gameSounds.playBgMusic();
+        }, 600);
 
         this.isPlaying = true;
         this.lastSpawnTime = performance.now();
@@ -326,6 +329,7 @@ class DuckGame {
         this.isPlaying = false;
         if (this.timerInterval) clearInterval(this.timerInterval);
 
+        window.gameSounds.pauseBgMusic();
         window.gameSounds.playVictory();
 
         // Calcular estadísticas
@@ -569,6 +573,7 @@ class DuckGame {
 
         try {
             window.speechSynthesis.cancel(); // Cancelar locución previa para responder rápido
+            window.gameSounds.duckBgMusic(1300); // Atenúa brevemente la música para que la voz se entienda con claridad
             const phrase = `${sideText}, ¡bien hecho!`;
             const utterance = new SpeechSynthesisUtterance(phrase);
             utterance.lang = 'es-ES';
