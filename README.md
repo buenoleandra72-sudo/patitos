@@ -61,7 +61,15 @@ Para solucionar esto de forma instantánea:
 * **🟡 Estándar:** Velocidad balanceada y divertida.
 * **🔴 Desafío:** Patos veloces para desafiar la velocidad de reacción.
 
-### 4. 🦆 Tipos de Patos
+### 4. 🗣️ Refuerzo de Lateralidad por Voz ("¡Izquierda / Derecha, bien hecho!")
+* **Estimulación Auditiva y Cognitiva:** Al derribar un pato, una voz sintetizada anuncia inmediatamente si el impacto ocurrió en el lado **"Izquierda"** o **"Derecha"**, seguido de la frase de estímulo positivo **"¡Bien hecho!"**.
+* **Cartel Visual de Lateralidad:** Acompañado de un cartel luminoso en pantalla con flechas indicadoras (`👈 ¡IZQUIERDA!` o `👉 ¡DERECHA!`) para reforzar la lateralización y la orientación espacial.
+
+### 5. ⏱️ Duración Predefinida de 30 Segundos
+* **Sesiones de Alta Intensidad y Enfoque:** El juego inicia automáticamente configurado a **30 segundos**, permitiendo rondas cortas, dinámicas y altamente motivadoras para evitar la fatiga motriz.
+* También configurable a 60s, 90s o Modo Libre para sesiones extendidas.
+
+### 6. 🦆 Tipos de Patos
 * **Pato Clásico (Amarillo):** Vuelo equilibrado (+100 puntos).
 * **Pato Gigante (Rosa):** Blanco grande para facilitar el alcance (+80 puntos).
 * **Pato Veloz (Verde):** Ágil y rápido (+200 puntos).
