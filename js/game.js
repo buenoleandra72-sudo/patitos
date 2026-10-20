@@ -25,10 +25,17 @@ class DuckGame {
         this.ducksHitDisplay = document.getElementById('ducksHitDisplay');
         this.streakDisplay = document.getElementById('streakDisplay');
 
+        // Banner de lateralidad (Izquierda / Derecha)
+        this.lateralBanner = document.getElementById('lateralBanner');
+        this.lateralEmoji = document.getElementById('lateralEmoji');
+        this.lateralSide = document.getElementById('lateralSide');
+        this.lateralMessage = document.getElementById('lateralMessage');
+        this.lateralTimeout = null;
+
         // Configuración y estado
         this.controlMode = 'camera'; // 'camera' o 'touch'
         this.difficulty = 'normal'; // 'easy', 'normal', 'hard'
-        this.gameDuration = 60; // segundos (0 para modo libre)
+        this.gameDuration = 30; // 30 segundos predefinidos
         this.mirrorBackground = true;
 
         this.isPlaying = false;
@@ -37,7 +44,7 @@ class DuckGame {
         this.shotsAttempted = 0;
         this.currentStreak = 0;
         this.maxStreak = 0;
-        this.timeLeft = 60;
+        this.timeLeft = 30;
         this.timerInterval = null;
         this.motionEventsCount = 0;
 
@@ -519,6 +526,17 @@ class DuckGame {
         window.gameSounds.playHit();
         window.gameSounds.playQuack(duck.type === 'giant' ? 0.8 : (duck.type === 'fast' ? 1.3 : 1.0));
 
+        // Determinar posición en pantalla: Izquierda o Derecha
+        const isLeft = duck.x < (this.width / 2);
+        const sideText = isLeft ? 'Izquierda' : 'Derecha';
+        const sideEmoji = isLeft ? '👈' : '👉';
+
+        // Reproducir voz: "Izquierda / Derecha, ¡bien hecho!"
+        this.speakFeedback(sideText);
+
+        // Mostrar cartel visual de refuerzo de lateralidad y motivación
+        this.showLateralFeedback(sideText, sideEmoji, isLeft);
+
         if (duck.type === 'golden') {
             window.gameSounds.playBonus();
             if (this.gameDuration > 0) {
@@ -530,14 +548,64 @@ class DuckGame {
         // Crear plumas y partículas
         this.spawnFeathers(duck.x, duck.y, duck.color);
 
-        // Texto flotante de puntuación
+        // Textos flotantes: dirección, felicitación y puntos
+        this.addFloatingText(`${sideEmoji} ¡${sideText.toUpperCase()}!`, duck.x, duck.y - 25, isLeft ? '#38BDF8' : '#4ADE80');
+        this.addFloatingText('¡BIEN HECHO! ⭐', duck.x, duck.y - 52, '#FDE047');
+
         let textMsg = `+${bonusPoints}`;
         if (this.currentStreak >= 5) {
             textMsg += ' ¡RACHA!';
         }
-        this.addFloatingText(textMsg, duck.x, duck.y, duck.type === 'golden' ? '#FFD700' : '#FFFFFF');
+        this.addFloatingText(textMsg, duck.x, duck.y + 15, duck.type === 'golden' ? '#FFD700' : '#FFFFFF');
 
         this.updateHUD();
+    }
+
+    /**
+     * Voz con síntesis de audio para decir Izquierda / Derecha y ¡Bien hecho!
+     */
+    speakFeedback(sideText) {
+        if (!('speechSynthesis' in window) || !window.gameSounds.enabled) return;
+
+        try {
+            window.speechSynthesis.cancel(); // Cancelar locución previa para responder rápido
+            const phrase = `${sideText}, ¡bien hecho!`;
+            const utterance = new SpeechSynthesisUtterance(phrase);
+            utterance.lang = 'es-ES';
+            utterance.rate = 1.25; // Ritmo ágil para juego interactivo
+            utterance.pitch = 1.2; // Tono alegre y motivacional para estimulación motriz
+
+            // Seleccionar voz en español si está disponible
+            const voices = window.speechSynthesis.getVoices();
+            const esVoice = voices.find(v => v.lang && (v.lang.startsWith('es') || v.lang.startsWith('ES')));
+            if (esVoice) {
+                utterance.voice = esVoice;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        } catch (e) {
+            console.warn('SpeechSynthesis error:', e);
+        }
+    }
+
+    /**
+     * Muestra el cartel visual animado de lateralidad en pantalla
+     */
+    showLateralFeedback(sideText, sideEmoji, isLeft) {
+        if (!this.lateralBanner) return;
+        if (this.lateralTimeout) clearTimeout(this.lateralTimeout);
+
+        if (this.lateralEmoji) this.lateralEmoji.textContent = sideEmoji;
+        if (this.lateralSide) this.lateralSide.textContent = `¡${sideText.toUpperCase()}!`;
+        if (this.lateralMessage) this.lateralMessage.textContent = '¡BIEN HECHO!';
+
+        this.lateralBanner.className = `lateral-banner visible ${isLeft ? 'left-side' : 'right-side'}`;
+
+        this.lateralTimeout = setTimeout(() => {
+            if (this.lateralBanner) {
+                this.lateralBanner.classList.remove('visible');
+            }
+        }, 1300);
     }
 
     /**
@@ -745,6 +813,9 @@ class DuckGame {
                     duck.resetTime = timestamp + 1800;
                     window.gameSounds.playHit();
                     window.gameSounds.playQuack(1.0);
+
+                    const isLeftPractice = duck.x < (pWidth / 2);
+                    this.speakFeedback(isLeftPractice ? 'Izquierda' : 'Derecha');
 
                     const badge = document.getElementById('practiceStatusBadge');
                     if (badge) {
