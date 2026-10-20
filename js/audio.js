@@ -10,6 +10,13 @@ class SoundEffects {
         this.enabled = true;
         this.volume = 0.5;
         this.initialized = false;
+
+        // Música de fondo desde la carpeta de música ("Do - Mi - Sol - Canasta.mp3")
+        this.bgMusic = new Audio('musica/Do - Mi - Sol - Canasta.mp3');
+        this.bgMusic.loop = true;
+        this.bgMusicBaseVolume = 0.35; // Nivel ideal para que no tape los efectos ni la voz
+        this.bgMusic.volume = this.bgMusicBaseVolume;
+        this.isMusicPlaying = false;
     }
 
     init() {
@@ -27,11 +34,81 @@ class SoundEffects {
 
     setVolume(val) {
         this.volume = Math.max(0, Math.min(1, val));
+        if (this.bgMusic) {
+            this.bgMusic.volume = this.bgMusicBaseVolume * this.volume * 2;
+        }
     }
 
     toggleMute() {
         this.enabled = !this.enabled;
+        if (!this.enabled) {
+            if (this.bgMusic) {
+                this.bgMusic.pause();
+            }
+        } else {
+            if (this.bgMusic && this.isMusicPlaying) {
+                this.bgMusic.play().catch(() => {});
+            }
+        }
         return this.enabled;
+    }
+
+    /**
+     * Reproduce la canción de fondo en bucle
+     */
+    playBgMusic() {
+        if (!this.enabled || !this.bgMusic) return;
+        this.init();
+        this.bgMusic.volume = this.bgMusicBaseVolume * (this.volume * 2);
+        this.bgMusic.play().then(() => {
+            this.isMusicPlaying = true;
+        }).catch(err => {
+            console.log('Autoplay de música en espera de interacción:', err);
+        });
+    }
+
+    /**
+     * Pausa la canción de fondo (al terminar la ronda o entrar a menús)
+     */
+    pauseBgMusic() {
+        if (this.bgMusic) {
+            this.bgMusic.pause();
+        }
+    }
+
+    /**
+     * Reanuda la canción de fondo
+     */
+    resumeBgMusic() {
+        if (this.enabled && this.bgMusic && this.isMusicPlaying) {
+            this.bgMusic.play().catch(() => {});
+        }
+    }
+
+    /**
+     * Detiene y reinicia la canción de fondo
+     */
+    stopBgMusic() {
+        if (this.bgMusic) {
+            this.bgMusic.pause();
+            this.bgMusic.currentTime = 0;
+            this.isMusicPlaying = false;
+        }
+    }
+
+    /**
+     * Atenúa temporalmente la música de fondo para que la voz se entienda con total nitidez
+     */
+    duckBgMusic(durationMs = 1300) {
+        if (!this.bgMusic || !this.isMusicPlaying || !this.enabled) return;
+        const targetVol = this.bgMusicBaseVolume * (this.volume * 2);
+        this.bgMusic.volume = Math.max(0.06, targetVol * 0.25);
+
+        setTimeout(() => {
+            if (this.bgMusic && this.isMusicPlaying && this.enabled) {
+                this.bgMusic.volume = targetVol;
+            }
+        }, durationMs);
     }
 
     /**
