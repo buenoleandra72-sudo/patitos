@@ -36,7 +36,7 @@
             <div class="hud-group">
                 <div class="hud-card" title="Tiempo restante">
                     <span class="icon">⏱️</span>
-                    <span id="timerDisplay" class="hud-value">60s</span>
+                    <span id="timerDisplay" class="hud-value">30s</span>
                 </div>
                 <button id="btnTutorialHud" class="hud-btn" style="background:#E0F2FE; color:#0369A1; border-color:#BAE6FD;" title="Tutorial y Calibración de Cámara">
                     🎓 Tutorial Cámara
@@ -52,6 +52,13 @@
                 </button>
             </div>
         </header>
+
+        <!-- Banner visual de lateralidad (Izquierda / Derecha) y felicitación -->
+        <div id="lateralBanner" class="lateral-banner hidden">
+            <span id="lateralEmoji" class="lateral-emoji">👈</span>
+            <span id="lateralSide" class="lateral-side">¡IZQUIERDA!</span>
+            <span id="lateralMessage" class="lateral-msg">¡BIEN HECHO!</span>
+        </div>
 
         <!-- Visor miniatura de cámara (cuando el modo cámara está activo) -->
         <div id="cameraFeedback" class="hidden">
@@ -153,11 +160,11 @@
                         <div class="setting-title">⏳ Duración de la Sesión:</div>
                         <div class="option-pills">
                             <label>
-                                <input type="radio" name="duration" value="30">
-                                <span>30s Rápido</span>
+                                <input type="radio" name="duration" value="30" checked>
+                                <span>30s Definido</span>
                             </label>
                             <label>
-                                <input type="radio" name="duration" value="60" checked>
+                                <input type="radio" name="duration" value="60">
                                 <span>60s Estándar</span>
                             </label>
                             <label>
