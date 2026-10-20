@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DuckStrike - Coordinación Óculo-Manual y Motricidad Gruesa</title>
+    <!-- Fuente amigable y accesible -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <main id="gameContainer">
+        <!-- Canvas principal de juego -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Barra Superior (HUD) -->
+        <header class="hud">
+            <div class="hud-group">
+                <div class="hud-card" title="Puntuación acumulada">
+                    <span class="icon">⭐</span>
+                    <span id="scoreDisplay" class="hud-value">0</span>
+                </div>
+                <div class="hud-card" title="Patos derribados">
+                    <span class="icon">🦆</span>
+                    <span id="ducksHitDisplay" class="hud-value">0</span>
+                </div>
+                <div class="hud-card" title="Racha consecutiva de aciertos">
+                    <span class="icon">🔥</span>
+                    <span id="streakDisplay" class="hud-value">0</span>
+                </div>
+            </div>
+
+            <div class="hud-group">
+                <div class="hud-card" title="Tiempo restante">
+                    <span class="icon">⏱️</span>
+                    <span id="timerDisplay" class="hud-value">60s</span>
+                </div>
+                <button id="btnTutorialHud" class="hud-btn" style="background:#E0F2FE; color:#0369A1; border-color:#BAE6FD;" title="Tutorial y Calibración de Cámara">
+                    🎓 Tutorial Cámara
+                </button>
+                <button id="btnAudioToggle" class="hud-btn" title="Activar/Desactivar sonido">
+                    🔊 Sonido
+                </button>
+                <button id="btnFullscreen" class="hud-btn" title="Pantalla Completa">
+                    ⛶ Pantalla Completa
+                </button>
+                <button id="btnGuide" class="hud-btn" title="Guía de Ejercicios y Motricidad">
+                    📘 Guía
+                </button>
+            </div>
+        </header>
+
+        <!-- Visor miniatura de cámara (cuando el modo cámara está activo) -->
+        <div id="cameraFeedback" class="hidden">
+            <video id="webcamPreview" autoplay playsinline muted></video>
+            <div class="camera-tag">Cámara Activa</div>
+            <div class="camera-activity-bar-container">
+                <div class="camera-activity-bar">
+                    <div id="cameraActivityFill" class="activity-fill"></div>
+                </div>
+                <div id="cameraActivityLabel" class="camera-activity-text">Movimiento: 0%</div>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             PANTALLA DE INICIO (Configuración y Modos)
+             ======================================================== -->
+        <div id="overlayStart" class="overlay">
+            <div class="card">
+                <h1 class="game-title">🦆 DuckStrike</h1>
+                <p class="game-subtitle">
+                    Juego interactivo para fortalecer la <strong>coordinación óculo-manual</strong> y la <strong>motricidad gruesa</strong>.
+                </p>
+                <span class="badge-benefit">🎯 Estimulación Motora, Reflejos y Amplitud Articular</span>
+
+                <!-- Alerta automática si se abrió con file:// -->
+                <div id="fileProtocolAlert" class="protocol-alert hidden">
+                    <span class="alert-icon">⚠️</span>
+                    <div class="alert-text">
+                        <strong>¿Quieres jugar con Cámara y Cuerpo?</strong><br>
+                        Por seguridad, los navegadores (Chrome/Edge) bloquean la cámara si se abre directamente el archivo HTML.
+                        <br><strong>Solución:</strong> Ejecuta el archivo <strong>JUGAR.bat</strong> incluido en la carpeta (¡abre el servidor local automáticamente!).
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <button id="btnOpenTutorial" class="btn-tutorial-open" type="button">
+                        📹 Ver Tutorial & Calibrar Cámara
+                    </button>
+                </div>
+
+                <div class="settings-grid">
+                    <!-- Modo de Control -->
+                    <div class="setting-row">
+                        <div class="setting-title">🎮 Modo de Control:</div>
+                        <div class="option-pills">
+                            <label>
+                                <input type="radio" name="controlMode" value="camera" checked>
+                                <span>📷 Cámara (Movimiento Corporal)</span>
+                                <small style="font-size:0.75rem; opacity:0.85;">Mueve brazos en el aire</small>
+                            </label>
+                            <label>
+                                <input type="radio" name="controlMode" value="touch">
+                                <span>👆 Táctil / Ratón / Pizarra</span>
+                                <small style="font-size:0.75rem; opacity:0.85;">Toca la pantalla</small>
+                            </label>
+                        </div>
+
+                        <!-- Opciones avanzadas de cámara -->
+                        <div id="cameraSettingsGroup" class="camera-suboptions">
+                            <label class="checkbox-custom">
+                                <input type="checkbox" id="toggleMirrorBg" checked>
+                                <span>Mostrar mi silueta en pantalla (Espejo)</span>
+                            </label>
+                            <div>
+                                <label for="cameraSensitivity">Sensibilidad: </label>
+                                <select id="cameraSensitivity">
+                                    <option value="alta">Alta (Movimientos suaves)</option>
+                                    <option value="media" selected>Normal</option>
+                                    <option value="baja">Baja (Filtro de luz)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dificultad Adaptativa -->
+                    <div class="setting-row">
+                        <div class="setting-title">⚡ Nivel de Dificultad:</div>
+                        <div class="option-pills">
+                            <label>
+                                <input type="radio" name="difficulty" value="easy">
+                                <span>🟢 Iniciación / Terapia</span>
+                                <small style="font-size:0.75rem; opacity:0.85;">Patos gigantes y lentos</small>
+                            </label>
+                            <label>
+                                <input type="radio" name="difficulty" value="normal" checked>
+                                <span>🟡 Estándar</span>
+                                <small style="font-size:0.75rem; opacity:0.85;">Equilibrado y divertido</small>
+                            </label>
+                            <label>
+                                <input type="radio" name="difficulty" value="hard">
+                                <span>🔴 Desafío</span>
+                                <small style="font-size:0.75rem; opacity:0.85;">Reflejos rápidos</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Tiempo de Sesión -->
+                    <div class="setting-row">
+                        <div class="setting-title">⏳ Duración de la Sesión:</div>
+                        <div class="option-pills">
+                            <label>
+                                <input type="radio" name="duration" value="30">
+                                <span>30s Rápido</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="duration" value="60" checked>
+                                <span>60s Estándar</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="duration" value="90">
+                                <span>90s Extendido</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="duration" value="0">
+                                <span>Modo Libre (Sin Límite)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btnStart" class="btn-primary">
+                    🚀 ¡EMPEZAR A JUGAR!
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             PANTALLA DE RESULTADOS (GAME OVER)
+             ======================================================== -->
+        <div id="overlayGameOver" class="overlay hidden">
+            <div class="card">
+                <h2 class="game-title">🏆 ¡Sesión Completada!</h2>
+                
+                <div id="finalFeedback" class="feedback-banner">
+                    🌟 ¡Excelente coordinación y actividad motora!
+                </div>
+
+                <div class="results-stats">
+                    <div class="stat-box">
+                        <div class="stat-label">Puntos Totales</div>
+                        <div id="finalScore" class="stat-number">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Patos Derribados</div>
+                        <div id="finalDucks" class="stat-number">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Racha Máxima</div>
+                        <div id="finalStreak" class="stat-number">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Precisión</div>
+                        <div id="finalAccuracy" class="stat-number">0%</div>
+                    </div>
+                </div>
+
+                <button id="btnRestart" class="btn-primary">
+                    🔄 Jugar Otra Vez / Ajustar
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             MODAL DE GUÍA PEDAGÓGICA Y TERAPÉUTICA
+             ======================================================== -->
+        <div id="guideModal" class="overlay hidden">
+            <div class="card">
+                <h2 class="game-title">📘 Guía de Estimulación Motriz</h2>
+                <div class="guide-content">
+                    <p>Este juego está diseñado para apoyar a docentes, terapeutas ocupacionales, fisioterapeutas y familias en el desarrollo motor a través del juego activo.</p>
+                    
+                    <h3>🤸‍♂️ ¿Cómo estimula la Motricidad Gruesa?</h3>
+                    <ul>
+                        <li><strong>Modo Cámara:</strong> Al situarse a 1.5 - 2 metros de la pantalla, el jugador utiliza los grupos musculares superiores (hombros, brazos y tronco) para alcanzar los patos en diferentes alturas y cuadrantes.</li>
+                        <li><strong>Alcance cruzado (Cruzar la línea media):</strong> Invita al usuario a usar el brazo derecho para interceptar patos del lado izquierdo de la pantalla y viceversa, estimulando la integración hemisférica cerebral.</li>
+                        <li><strong>Movimientos de flexión y extensión:</strong> Los patos vuelan a diferentes niveles (cielo alto y estanque bajo), lo que fomenta agacharse o estirarse en puntillas de pie.</li>
+                    </ul>
+
+                    <h3>👁️ ¿Cómo estimula la Coordinación Óculo-Manual?</h3>
+                    <ul>
+                        <li><strong>Seguimiento visual continuo:</strong> El ojo debe rastrear el movimiento senoidal de los patos y calcular la anticipación espacial de su trayectoria.</li>
+                        <li><strong>Precisión motora:</strong> Sincronizar el momento exacto en que la mano interseca la posición del pato.</li>
+                        <li><strong>Diferenciación de estímulos:</strong> Los patos dorados (+3s y bonificación) fomentan la atención focalizada y selectiva.</li>
+                    </ul>
+
+                    <h3>💡 Sugerencias de Uso:</h3>
+                    <ul>
+                        <li>En pantallas táctiles o pizarras digitales, colocar la pantalla a la altura del pecho del niño para permitir extensión completa de extremidades superiores.</li>
+                        <li>Para sesiones de calentamiento o principiantes, activar el nivel <em>Iniciación / Terapia</em> y la duración <em>Modo Libre</em> para eliminar la frustración y premiar cada acierto.</li>
+                    </ul>
+                </div>
+                <button id="btnCloseGuide" class="btn-secondary" style="width:100%; margin-top:15px;">
+                    Cerrar Guía
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             MODAL DE TUTORIAL Y CALIBRACIÓN DE CÁMARA
+             ======================================================== -->
+        <div id="modalTutorial" class="overlay hidden">
+            <div class="card">
+                <h2 class="game-title">📹 Tutorial de Movimiento Corporal</h2>
+                <p class="game-subtitle">
+                    Aprende a sincronizar tu cuerpo y brazos frente a la cámara para una experiencia óptima de motricidad gruesa.
+                </p>
+
+                <div class="tutorial-step-list">
+                    <div class="tutorial-step-card">
+                        <div class="step-num">1</div>
+                        <h4>Distancia Óptima</h4>
+                        <p>Sitúate a <strong>1.5 a 2 metros</strong> de la pantalla para que la cámara capte tus brazos extendidos.</p>
+                    </div>
+                    <div class="tutorial-step-card">
+                        <div class="step-num">2</div>
+                        <h4>Buena Iluminación</h4>
+                        <p>La luz debe darte de frente. Evita ventanas o lámparas fuertes directamente a tus espaldas.</p>
+                    </div>
+                    <div class="tutorial-step-card">
+                        <div class="step-num">3</div>
+                        <h4>Auras de Impacto</h4>
+                        <p>Al mover los brazos, verás <strong>círculos luminosos</strong> siguiendo tus manos para derribar patos.</p>
+                    </div>
+                </div>
+
+                <!-- Área Interactiva de Calibración en Vivo -->
+                <div class="calibration-box">
+                    <canvas id="practiceCanvas" width="480" height="220"></canvas>
+                    <div class="calibration-status">
+                        <span id="practiceHint">🎯 Mueve tus brazos para tocar al patito de prueba:</span>
+                        <span id="practiceStatusBadge" class="status-badge waiting">Esperando movimiento...</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button id="btnStartFromTutorial" class="btn-primary" style="flex:2;">
+                        🚀 ¡Entendido, Vamos a Jugar!
+                    </button>
+                    <button id="btnCloseTutorial" class="btn-secondary" style="flex:1; margin-top:0;">
+                        Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Scripts del juego -->
+    <script src="js/audio.js"></script>
+    <script src="js/motion.js"></script>
+    <script src="js/game.js"></script>
+
+    <!-- Script para abrir/cerrar guía pedagógica -->
+    <script>
+        const btnGuide = document.getElementById('btnGuide');
+        const guideModal = document.getElementById('guideModal');
+        const btnCloseGuide = document.getElementById('btnCloseGuide');
+
+        btnGuide.addEventListener('click', () => {
+            guideModal.classList.remove('hidden');
+        });
+
+        btnCloseGuide.addEventListener('click', () => {
+            guideModal.classList.add('hidden');
+        });
+
+        guideModal.addEventListener('click', (e) => {
+            if (e.target === guideModal) {
+                guideModal.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
